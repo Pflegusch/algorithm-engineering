@@ -20,8 +20,8 @@ vector<int> bfs(vector<pair<int, int>> adj[], int s, int t, int n, int* weight) 
     // Initialize queue, vector which holds path for each iteration and 
     // vector for all visited nodes
     queue<vector<int>> q;
-    vector<int> path;
     vector<bool> visited(n, false);
+    vector<int> path;
 
     // Push back s into the path, as it has to be in the resulting path
     // as well as the path to the current queue q, mark s as visited
@@ -67,20 +67,6 @@ vector<int> bfs(vector<pair<int, int>> adj[], int s, int t, int n, int* weight) 
     return path;
 }
 
-void printGraph(vector<pair<int,int>> adj[], int V) {
-    int v, w;
-    for (int u = 1; u <= V; u++) {
-        cout << "Node " << u << " makes an edge with \n";
-        for (auto it = adj[u].begin(); it!=adj[u].end(); it++) {
-            v = it->first;
-            w = it->second;
-            cout << "\tNode " << v << " with edge weight = "
-                 << w << "\n";
-        }
-        cout << "\n";
-    }
-}
-
 int main(int argc, char** argv) {
     /* Enter your code here. Read input from STDIN. Print output to STDOUT */   
     int n, m, s, t;
@@ -95,17 +81,12 @@ int main(int argc, char** argv) {
 
     cin >> s >> t;
 
-    for (int u = 1; u <= n; u++) {
-        sort(adj[u].begin(), adj[u].end());
-        adj[u].erase(unique(adj[u].begin(), adj[u].end()), adj[u].end());
-    }
-
     int weight = 0;
     vector<int> path = bfs(adj, s, t, n, &weight);
     cout << path.size() - 1 << endl;
     cout << weight << endl;
-    for (int i = 0; i < path.size(); i++) {
-        cout << path[i] << " ";
+    for (auto &elem : path) {
+        cout << elem << " ";
     }
     cout << endl;
 
