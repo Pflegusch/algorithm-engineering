@@ -49,113 +49,66 @@ int currentCut(pair<int, vector<pair<int, int>>> part[], int V) {
     return weightedEdgeCut / 2;
 }
 
-void max_cut_label_prop(vector<pair<int, int>> adj[], 
+void max_cut_label_propagation(vector<pair<int, int>> adj[], 
     pair<int, vector<pair<int, int>>> part[],
     int n) 
 {
-    // This is too good, no 1/2 approximation
-    int currentMaxWeight = 0, maxWeight = 0;
-    int maxNode = 0;
+    // Calculate the node with the most heavy edges incident to it, putting this in S will
+    // be a good start
+    int cut = 0, lastAdded = 0;
     for (int u = 1; u <= n; u++) {
+        int currentCut = 0;
         for (auto it = adj[u].begin(); it != adj[u].end(); it++) {
-            currentMaxWeight += it->second;
+            currentCut += it->second;
         }
-        if (currentMaxWeight > maxWeight) {
-            maxWeight = currentMaxWeight;
-            maxNode = u;
+        if (currentCut > cut) {
+            cut = currentCut;
+            lastAdded = u;
         }
-        currentMaxWeight = 0;
     }
-
-    // One testcase no 1/2 approximation
-    maxNode = 1;
-    applyPartition(part, adj, 0, n, 1);
-    for (int u = 2; u <=n; u++) {
+    
+    // Apply partition, put heaviest node into S and rest alternately into S and T
+    applyPartition(part, adj, 0, n, lastAdded);
+    for (int u = 1; u <= n; u++) {
+        if (u == lastAdded) continue;
         applyPartition(part, adj, u % 2, n, u);
     }
 
-    // Too good, all testcases fail bc of no 1/2 approximation
-    // applyPartition(part, adj, 0, n, maxNode);
-    // for (int u = 1; u <= n; u++) {
-    //     if (u == maxNode) continue;
-    //     applyPartition(part, adj, 1, n, u);
-    // }
-
-    int lastAdded = maxNode;
-    int cut = currentCut(part, n);
+    // Starting from the heaviest node, always pick the edge with the smallest weight
+    // and start putting the node incident to it into the other partition
+    // TODO: This is not optimal, because the loop will finish once there is a node found 
+    // were all node incident to it wont provide any better solution if you move them
+    // to the other set - so there are nodes that wont get scanned by this
     int edge = 0;
     while (edge != adj[lastAdded].size() - 1) {
         // Always the element with the smallest edge weight after
-        int currentBlock = adj[lastAdded][edge].first;
+        int currentBlock = part[adj[lastAdded][edge].first].first;
         int newBlock = (!currentBlock) ? 1 : 0;
-        applyPartition(part, adj, newBlock, n, adj[lastAdded][edge].second);
+        applyPartition(part, adj, newBlock, n, adj[lastAdded][edge].first);
         int iterCut = currentCut(part, n);
 
         if (iterCut < cut) {
             // If new cut doesnt increase, proceed with next smallest edge
-            applyPartition(part, adj, currentBlock, n, adj[lastAdded][edge].second);
+            applyPartition(part, adj, currentBlock, n, adj[lastAdded][edge].first);
             edge++;
         } else if (iterCut == cut) {
             edge++;
         } else {
+            // Move to next vertex if better solution is found
             lastAdded = adj[lastAdded][edge].first;
             edge = 0;
             cut = iterCut;
         }
     }
 
+    // Give solution
     cout << currentCut(part, n) << endl;
     for (int u = 1; u <= n; u++) {
-        if (part[u].first == 1) {
+        if (part[u].first == 0) {
             cout << u << " ";
         }
     }
     cout << endl;
-    // https://www.cl.cam.ac.uk/teaching/1617/AdvAlgo/maxcut.pdf
-    // https://www.cs.jhu.edu/~mdinitz/classes/ApproxAlgorithms/Spring2019/Lectures/lecture5.pdf
-}
-
-void max_cut_label_propagation(vector<pair<int, int>> adj[], 
-    pair<int, vector<pair<int, int>>> part[],
-    int n) 
-{
-    // Initialize S and T with S as the first node in the graph, maybe use n with 
-    // most outgoing edges here
-    applyPartition(part, adj, 0, n, 7);
-
-    // The rest is in T
-    for (int u = 1; u < n; u++) {
-        applyPartition(part, adj, 1, n, u);
-    }
-
-    // Rounds of label propagation
-    int failed = 0;
-    int cut = 0;
-    while (true) {
-        for (int u = 1; u <= n; u++) {
-            int currentBlock = part[u].first;
-            int newBlock = (currentBlock == 0) ? 1 : 0;
-            applyPartition(part, adj, newBlock, n, u);
-            int roundCut = currentCut(part, n);
-            if (roundCut <= cut) {
-                failed++;
-                applyPartition(part, adj, currentBlock, n, u);
-            } else {
-                cut = roundCut;
-            }
-            if (failed == n) {
-                cout << cut << endl;
-                for (int u = 1; u <= n; u++) {
-                    if (part[u].first == 1) {
-                        cout << u << " ";
-                    }
-                }
-                cout << endl;
-                return;
-            }
-        }
-        failed = 0;
-    }
 }
 
 int main(int argc, char** argv) {
@@ -172,6 +125,7 @@ int main(int argc, char** argv) {
     }
 
     // Erase duplicates and sort adj after weights to always have the smallest one at the top
+    // Necessary for the above implementation to work
     for (int u = 1; u <= n; u++) {
         sort(adj[u].begin(), adj[u].end());
         adj[u].erase(unique(adj[u].begin(), adj[u].end()), adj[u].end());
@@ -180,11 +134,7 @@ int main(int argc, char** argv) {
         });
     }
 
-    //printGraph(adj, n);
-
-    // max_cut_label_propagation(adj, partition, n);
-    // cout << endl;
-    max_cut_label_prop(adj, partition, n);
+    max_cut_label_propagation(adj, partition, n);
 
     return 0;
 }
