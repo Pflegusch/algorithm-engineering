@@ -27,7 +27,7 @@ void applyDegree(pair<int, vector<pair<int, int>>> adj[],
     }
 }
 
-void printGraph(pair<int, pair<int, vector<pair<int,int>>>> adj[], int V) {
+void printGraph(pair<int, pair<int, vector<pair<int, int>>>> adj[], int V) {
     int v, w;
     for (int u = 1; u <= V; u++) {
         cout << "Node " << u << " with weight " << adj[u].second.first << 
@@ -42,20 +42,21 @@ void printGraph(pair<int, pair<int, vector<pair<int,int>>>> adj[], int V) {
     }
 }
 
-int currentCut(pair<int, vector<pair<int, int>>> part[], int V) {
-    int weightedEdgeCut = 0;
-    for (int u = 1; u <= V; u++) {
-        for (auto it = part[u].second.begin(); it != part[u].second.end(); it++) {
-            if (part[u].first != part[it->first].first) {
-                weightedEdgeCut += it->second;
-            }
-        }
+vector<pair<int, int>> addWeightAndDegree(pair<int, pair<int, vector<pair<int, int>>>> adj[], int V) {
+    vector<pair<int, int>> result(V);
+    for (int i = 0; i < V; i++) {
+        result[i].first = i + 1;
+        result[i].second = adj[i + 1].first + adj[i + 1].second.first;
     }
-
-    return weightedEdgeCut / 2;
+    return result;
 }
 
-
+vector<pair<int, int>> solve(vector<pair<int, int>> prio, pair<int, pair<int, vector<pair<int, int>>>> adj[], int V, int m) {
+    vector<pair<int, int>> newGraph[m];
+    for (pair<int, int> &pair : prio) {
+        NULL;
+    }
+}
 
 int main(int argc, char** argv) {
     /* Enter your code here. Read input from STDIN. Print output to STDOUT */   
@@ -82,10 +83,19 @@ int main(int argc, char** argv) {
         adj[u].second.erase(unique(adj[u].second.begin(), adj[u].second.end()), adj[u].second.end());
     }
 
-    // Node weight == Degree??
+    // Apply the current degree to each node
     applyDegree(adj, adj_deg, n);
 
     printGraph(adj_deg, n);
+
+    // Create a priority list that contains the sum of the weight and degree of each node
+    vector<pair<int, int>> prio = addWeightAndDegree(adj_deg, n);
+    sort(prio.begin(), prio.end(), [](const pair<int, int> & p1, const pair<int, int> & p2) {
+        return p1.second > p2.second;
+    });
+    for (pair<int, int> &pair : prio) {
+        cout << pair.first << "->" << pair.second << endl;
+    }
 
     return 0;
 }
