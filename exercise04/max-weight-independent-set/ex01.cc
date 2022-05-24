@@ -51,11 +51,55 @@ vector<pair<int, int>> addWeightAndDegree(pair<int, pair<int, vector<pair<int, i
     return result;
 }
 
-vector<pair<int, int>> solve(vector<pair<int, int>> prio, pair<int, pair<int, vector<pair<int, int>>>> adj[], int V, int m) {
-    vector<pair<int, int>> newGraph[m];
-    for (pair<int, int> &pair : prio) {
-        NULL;
+bool checkIfAllNodesReached(pair<int, pair<int, vector<pair<int, int>>>> graph[], int V) {
+    vector<bool> visited(V + 1, false);
+    visited[0] = true;
+    for (int u = 1; u <= V; u++) {
+        auto it = graph[u].second.second.begin();
+        if (it != graph[u].second.second.end()) {
+            visited[u] = true;
+            for (auto it = graph[u].second.second.begin(); it != graph[u].second.second.end(); it++) {
+                visited[it->first] = true; 
+            }
+        }
     }
+
+    for (bool vis : visited) {
+        if (!vis) return false;
+    }
+    return true;
+}
+
+void solve(pair<int, pair<int, vector<pair<int, int>>>> graph[],
+        vector<pair<int, int>> prio, 
+        pair<int, pair<int, vector<pair<int, int>>>> adj[], 
+        int V, int m) 
+{
+    int nodes = 0;
+    vector<int> node_set;
+    for (pair<int, int> node : prio) {
+        graph[node.first] = adj[node.first];
+        node_set.push_back(node.first);
+        nodes++;
+        if (checkIfAllNodesReached(graph, V)) break;
+    }
+    // printGraph(graph, V);
+
+    // Amount of nodes
+    cout << nodes << endl;
+
+    // Weight of nodes
+    int weight = 0;
+    for (int &node : node_set) {
+        weight += adj[node].second.first;
+    }
+    cout << weight << endl;
+
+    // Nodes
+    for (int &node : node_set) {
+        cout << node << " ";
+    }
+    cout << endl;
 }
 
 int main(int argc, char** argv) {
@@ -64,6 +108,7 @@ int main(int argc, char** argv) {
     cin >> n >> m;
     pair<int, vector<pair<int, int>>> adj[m];
     pair<int, pair<int, vector<pair<int, int>>>> adj_deg[m];
+    pair<int, pair<int, vector<pair<int, int>>>> graph[m];
     
     for (int i = 0; i < 2*m; i++) {
         int src, dest, w;
@@ -86,16 +131,14 @@ int main(int argc, char** argv) {
     // Apply the current degree to each node
     applyDegree(adj, adj_deg, n);
 
-    printGraph(adj_deg, n);
+    //printGraph(adj_deg, n);
 
     // Create a priority list that contains the sum of the weight and degree of each node
     vector<pair<int, int>> prio = addWeightAndDegree(adj_deg, n);
     sort(prio.begin(), prio.end(), [](const pair<int, int> & p1, const pair<int, int> & p2) {
         return p1.second > p2.second;
     });
-    for (pair<int, int> &pair : prio) {
-        cout << pair.first << "->" << pair.second << endl;
-    }
+    solve(graph, prio, adj_deg, n, m);
 
     return 0;
 }
