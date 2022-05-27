@@ -13,10 +13,13 @@ void addEdge(pair<int, vector<pair<int, int>>> adj[], int u, int v, int wt) {
     adj[v].second.push_back(make_pair(u, wt));
 }
 
+
+// Add weight to a given node
 void addWeight(pair<int, vector<pair<int, int>>> adj[], int u, int wt) {
     adj[u].first = wt;
 }
 
+// Add the degree ti a given node
 void applyDegree(pair<int, vector<pair<int, int>>> adj[], 
     pair<int, pair<int, vector<pair<int, int>>>> adj_deg[], 
     int V) 
@@ -42,6 +45,8 @@ void printGraph(pair<int, pair<int, vector<pair<int, int>>>> adj[], int V) {
     }
 }
 
+// Add both the weight and the degree to create a "priority list" that priorites verticies with the 
+// highest weight + degree
 vector<pair<int, int>> addWeightAndDegree(pair<int, pair<int, vector<pair<int, int>>>> adj[], int V) {
     vector<pair<int, int>> result(V);
     for (int i = 0; i < V; i++) {
@@ -51,19 +56,25 @@ vector<pair<int, int>> addWeightAndDegree(pair<int, pair<int, vector<pair<int, i
     return result;
 }
 
+// Function to check the independent set, if all verticies get reached from a given subgraph, a IS is found
 bool checkIfAllNodesReached(pair<int, pair<int, vector<pair<int, int>>>> graph[], int V) {
+    // Mark all visited nodes
     vector<bool> visited(V + 1, false);
     visited[0] = true;
+
+    // Mark all nodes as visited that the subgraph can reach
     for (int u = 1; u <= V; u++) {
         auto it = graph[u].second.second.begin();
         if (it != graph[u].second.second.end()) {
             visited[u] = true;
-            for (auto it = graph[u].second.second.begin(); it != graph[u].second.second.end(); it++) {
+            while (it != graph[u].second.second.end()) {
                 visited[it->first] = true; 
+                it++;
             }
         }
     }
 
+    // If all verticies got visited, the IS is found
     for (bool vis : visited) {
         if (!vis) return false;
     }
@@ -77,13 +88,15 @@ void solve(pair<int, pair<int, vector<pair<int, int>>>> graph[],
 {
     int nodes = 0;
     vector<int> node_set;
+
+    // For each vertex from the "priority list", add it to a subgraph and check if its and IS,
+    // otherwise take the next vertex in the list and recheck
     for (pair<int, int> node : prio) {
         graph[node.first] = adj[node.first];
         node_set.push_back(node.first);
         nodes++;
         if (checkIfAllNodesReached(graph, V)) break;
     }
-    // printGraph(graph, V);
 
     // Amount of nodes
     cout << nodes << endl;
@@ -107,8 +120,7 @@ int main(int argc, char** argv) {
     int n, m, w;
     cin >> n >> m;
     pair<int, vector<pair<int, int>>> adj[m];
-    pair<int, pair<int, vector<pair<int, int>>>> adj_deg[m];
-    pair<int, pair<int, vector<pair<int, int>>>> graph[m];
+    pair<int, pair<int, vector<pair<int, int>>>> adj_deg[m], graph[m];
     
     for (int i = 0; i < 2*m; i++) {
         int src, dest, w;
@@ -130,8 +142,6 @@ int main(int argc, char** argv) {
 
     // Apply the current degree to each node
     applyDegree(adj, adj_deg, n);
-
-    //printGraph(adj_deg, n);
 
     // Create a priority list that contains the sum of the weight and degree of each node
     vector<pair<int, int>> prio = addWeightAndDegree(adj_deg, n);
