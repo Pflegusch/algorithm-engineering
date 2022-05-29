@@ -50,11 +50,8 @@ bool Graph::BFS(int s, int t)
         level[i] = -1;
 
     level[0] = -2;
-    level[s] = 0; // Level of source vertex
+    level[s] = 0;
 
-    // Create a queue, enqueue source vertex
-    // and mark source vertex as visited here
-    // level[] array works as visited array also.
     list<int> q;
     q.push_back(s);
 
@@ -68,30 +65,15 @@ bool Graph::BFS(int s, int t)
             Edge &e = *i;
             if (level[e.v] < 0 && e.flow < e.C)
             {
-                // Level of current vertex is,
-                // level of parent + 1
                 level[e.v] = level[u] + 1;
-
                 q.push_back(e.v);
             }
         }
     }
 
-    // IF we can not reach to the sink we
-    // return false else true
     return level[t] < 0 ? false : true;
 }
 
-// A DFS based function to send flow after BFS has
-// figured out that there is a possible flow and
-// constructed levels. This function called multiple
-// times for a single call of BFS.
-// flow : Current flow send by parent function call
-// start[] : To keep track of next edge to be explored.
-//           start[i] stores  count of edges explored
-//           from i.
-//  u : Current vertex
-//  t : Sink
 int Graph::sendFlow(int u, int flow, int t, int start[])
 {
     // Sink reached
@@ -114,11 +96,7 @@ int Graph::sendFlow(int u, int flow, int t, int start[])
             // flow is greater than zero
             if (temp_flow > 0)
             {
-                // add flow  to current edge
                 e.flow += temp_flow;
-
-                // subtract flow from reverse edge
-                // of current edge
                 adj[e.v][e.rev].flow -= temp_flow;
                 return temp_flow;
             }
@@ -131,18 +109,10 @@ int Graph::sendFlow(int u, int flow, int t, int start[])
 // Returns maximum flow in graph
 void Graph::DinicMaxflow(int s, int t)
 {
-    // Corner case
-    // if (s == t)
-    //     return -1;
-
     int total = 0; // Initialize result
 
-    // Augment the flow while there is path
-    // from source to sink
     while (BFS(s, t))
     {
-        // store how many edges are visited
-        // from V { 0 to V }
         int *start = new int[V + 1]{0};
 
         // while flow is not zero in graph from S to D
