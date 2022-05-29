@@ -7,16 +7,16 @@ struct Edge
     int v;
     int flow;
     int C;
-    int rev;
+    size_t rev;
 };
 
 class Graph
 {
     int V;
     vector<Edge> *adj;
+    int *level;
 
 public:
-    int *level;
     Graph(int V)
     {
         adj = new vector<Edge>[V];
@@ -46,10 +46,10 @@ public:
 // Also assigns levels to nodes.
 bool Graph::BFS(int s, int t)
 {
-    for (int i = 0; i < V; i++)
+    level[0] = -2;
+    for (int i = 1; i < V; i++)
         level[i] = -1;
 
-    level[0] = -2;
     level[s] = 0;
 
     list<int> q;
@@ -81,7 +81,7 @@ int Graph::sendFlow(int u, int flow, int t, int start[])
         return flow;
 
     // Traverse all adjacent edges one -by - one.
-    for (; start[u] < adj[u].size(); start[u]++)
+    while (start[u] < adj[u].size())
     {
         // Pick next edge from adjacency list of u
         Edge &e = adj[u][start[u]];
@@ -101,6 +101,7 @@ int Graph::sendFlow(int u, int flow, int t, int start[])
                 return temp_flow;
             }
         }
+        start[u]++;
     }
 
     return 0;
@@ -117,9 +118,9 @@ void Graph::DinicMaxflow(int s, int t)
 
         // while flow is not zero in graph from S to D
         while (int flow = sendFlow(s, INT_MAX, t, start))
-
-            // Add path flow to overall flow
+        {
             total += flow;
+        }
     }
 
     // return maximum flow
