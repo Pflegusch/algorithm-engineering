@@ -1,6 +1,6 @@
 CC = g++
 
-CCFLAGSBASE = -std=c++20 -march=native -O3
+CCFLAGSBASE = -std=c++20 -g -march=native -O3
 
 all: ex01.out
 
