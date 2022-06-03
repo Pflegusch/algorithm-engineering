@@ -134,6 +134,7 @@ int main(int argc, char **argv)
     cin >> n >> m;
     struct Graph *graph = createGraph(n, 2 * m);
     vis.resize(n, 0);
+    int start = 0;
 
     for (int i = 0; i < 2 * m; i++)
     {
@@ -142,6 +143,10 @@ int main(int argc, char **argv)
         graph->edge[i].src = src;
         graph->edge[i].dest = dest;
         graph->edge[i].weight = w;
+        if (w > 0)
+        {
+            start = src;
+        }
     }
 
     NegCycleBellmanFord(graph, 1);
