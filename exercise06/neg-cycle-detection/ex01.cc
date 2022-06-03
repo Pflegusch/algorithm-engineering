@@ -1,144 +1,149 @@
-#include <vector>
-#include <iostream>
-#include <algorithm>
-#include "bits/stdc++.h"
-
+#include <bits/stdc++.h>
 using namespace std;
 
-void addEdge(pair<int, vector<pair<int, int>>> adj[], int u, int v, int wt)
+vector<int> vis;
+
+// Structure to represent a weighted
+// edge in graph
+struct Edge
 {
-    adj[u].second.push_back(make_pair(v, wt));
-    adj[v].second.push_back(make_pair(u, wt));
+    int src, dest, weight;
+};
+
+// Structure to represent a directed
+// and weighted graph
+struct Graph
+{
+
+    // V -> Number of vertices,
+    // E -> Number of edges
+    int V, E;
+
+    // Graph is represented as an
+    // array of edges
+    struct Edge *edge;
+};
+
+// Creates a new graph with V vertices
+// and E edges
+struct Graph *createGraph(int V, int E)
+{
+    struct Graph *graph = new Graph;
+    graph->V = V;
+    graph->E = E;
+    graph->edge = new Edge[graph->E];
+    return graph;
 }
 
-void addWeight(pair<int, vector<pair<int, int>>> adj[], int u, int wt)
+// Function runs Bellman-Ford algorithm
+// and prints negative cycle(if present)
+void NegCycleBellmanFord(struct Graph *graph,
+                         int src)
 {
-    adj[u].first = wt;
-}
+    int V = graph->V;
+    int E = graph->E;
+    int dist[V];
+    int parent[V];
 
-void printGraph(pair<int, vector<pair<int, int>>> adj[], int V)
-{
-    int v, w;
-    for (int u = 1; u <= V; u++)
-    {
-        cout << "Node " << u << " makes an edge with \n";
-        for (auto it = adj[u].second.begin(); it != adj[u].second.end(); it++)
-        {
-            v = it->first;
-            w = it->second;
-            cout << "\tNode " << v << " with edge weight = " << w << "\n";
-        }
-        cout << "\n";
-    }
-}
-
-void solve(pair<int, vector<pair<int, int>>> adj[], int V, int E)
-{
-    vector<int> vis(V, 0);
-    int dist[V], parent[V];
-
-    // Step 1: Initialize distances from 1
+    // Initialize distances from src
     // to all other vertices as INFINITE
-    for (int i = 0; i <= V; i++)
+    // and all parent as -1
+    for (int i = 0; i < V; i++)
     {
+
         dist[i] = INT_MAX;
         parent[i] = -1;
     }
-    dist[1] = 0;
-    vis[1] = 0;
-
-    bool flag = true;
+    dist[src] = 0;
+    vis[src] = 0;
+    // Relax all edges |V| - 1 times.
+    bool flg = true;
     for (int i = 1; i <= V - 1; i++)
     {
-        if (!flag)
+        if (flg == false)
             break;
-        flag = false;
-        for (auto it = adj[i].second.begin(); it != adj[i].second.end(); it++)
+        flg = false;
+        for (int j = 0; j < E; j++)
         {
-            int u = i;
-            int v = it->first;
-            int w = it->second;
-            if (dist[u] != INT_MAX && dist[u] + w < dist[v])
+
+            int u = graph->edge[j].src;
+            int v = graph->edge[j].dest;
+            int weight = graph->edge[j].weight;
+
+            if (dist[u] != INT_MAX && dist[u] + weight < dist[v])
             {
-                flag = true;
+                flg = true;
                 vis[v] = 1;
-                dist[v] = dist[u] + w;
+                dist[v] = dist[u] + weight;
                 parent[v] = u;
             }
         }
     }
 
-    int c = -1;
-    for (int i = 1; i <= V; i++)
+    // Check for negative-weight cycles
+    int C = -1;
+    for (int i = 0; i < E; i++)
     {
-        for (auto it = adj[i].second.begin(); it != adj[i].second.end(); it++)
-        {
-            int u = i;
-            int v = it->first;
-            int w = it->second;
 
-            if (dist[u] != INT_MAX && dist[u] + w < dist[v])
-            {
-                c = v;
-                break;
-            }
+        int u = graph->edge[i].src;
+        int v = graph->edge[i].dest;
+        int weight = graph->edge[i].weight;
+
+        if (dist[u] != INT_MAX && dist[u] + weight < dist[v])
+        {
+
+            // Store one of the vertex of
+            // the negative weight cycle
+            C = v;
+            break;
         }
     }
 
-    if (c != -1)
+    if (C != -1)
     {
-        for (int i = 1; i <= V; i++)
+
+        for (int i = 0; i < V; i++)
+            C = parent[C];
+
+        // To store the cycle vertex
+        vector<int> cycle;
+        for (int v = C;; v = parent[v])
         {
-            cout << c << " ";
-            c = parent[c];
+
+            cycle.push_back(v);
+            if (v == C && cycle.size() > 1)
+                break;
         }
 
-        // vector<int> cycle;
-        // for (int v = c;; v = parent[v])
-        // {
-        //     cycle.push_back(v);
-        // if (v == c && cycle.size() > 1)
-        //     break;
-        // }
-        // reverse(cycle.begin(), cycle.end());
-        // for (int v : cycle)
-        // {
-        //     cout << v << " ";
-        // }
-        // cout << endl;
+        // Reverse cycle[]
+        reverse(cycle.begin(), cycle.end());
+
+        // Printing the negative cycle
+        cout << cycle.size() - 1 << endl;
+        for (int v : cycle)
+            cout << v << ' ';
+        cout << endl;
+        exit(0);
     }
 }
 
+// Driver Code
 int main(int argc, char **argv)
 {
-    /* Enter your code here. Read input from STDIN. Print output to STDOUT */
-    int n, m, w;
+    int n, m;
     cin >> n >> m;
-    pair<int, vector<pair<int, int>>> adj[m];
+    struct Graph *graph = createGraph(n, 2 * m);
+    vis.resize(n, 0);
 
-    for (int i = 0; i < m; i++)
+    for (int i = 0; i < 2 * m; i++)
     {
         int src, dest, w;
         cin >> src >> dest >> w;
-        addEdge(adj, src, dest, w);
+        graph->edge[i].src = src;
+        graph->edge[i].dest = dest;
+        graph->edge[i].weight = w;
     }
 
-    for (int i = 1; i <= n; i++)
-    {
-        cin >> w;
-        addWeight(adj, i, w);
-    }
-
-    // Erase duplicates and sort adj after weights to always have the smallest one at the top
-    // Necessary for the above implementation to work
-    for (int u = 1; u <= n; u++)
-    {
-        sort(adj[u].second.begin(), adj[u].second.end());
-        adj[u].second.erase(unique(adj[u].second.begin(), adj[u].second.end()), adj[u].second.end());
-    }
-
-    printGraph(adj, n);
-    solve(adj, n, m);
-
+    NegCycleBellmanFord(graph, 1);
     return 0;
 }
