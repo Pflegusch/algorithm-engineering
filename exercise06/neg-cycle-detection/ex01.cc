@@ -149,6 +149,6 @@ int main(int argc, char **argv)
         }
     }
 
-    NegCycleBellmanFord(graph, 1);
+    NegCycleBellmanFord(graph, start);
     return 0;
 }
